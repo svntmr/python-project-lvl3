@@ -21,6 +21,7 @@ flake8 = "4.0.1"
 pytest = "7.0.0"
 isort = "5.10.1"
 pytest-cov = "3.0.0"
+types-requests = "2.27.11"
 
 [tool.poetry.scripts]
 page-loader = "page_loader.scripts.page_loader:main"
