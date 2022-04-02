@@ -1,8 +1,8 @@
 [tool.poetry]
 name = "hexlet-code"
-version = "0.1.0"
+version = "0.2.0"
 description = "A small library to download and store the content of the web pages"
-authors = ["Savin Timur <svn.tmr@bk.ru>"]
+authors = ["Savin Timur <mr.svntmr@gmail.com>"]
 repository = 'https://github.com/svntmr/python-project-lvl3'
 
 packages = [

@@ -1,16 +1,19 @@
 import argparse
+from dataclasses import dataclass
 from os import getcwd
+from pathlib import Path
+from typing import List, Optional
 
 from page_loader.core import download
 
 
-def main():
-    args = parse_args()
-    file_path = download(args.page_url, args.output)
-    print(file_path)
+@dataclass(frozen=True)
+class PageLoaderConfig:
+    page_url: str
+    output: Path
 
 
-def parse_args() -> argparse.Namespace:
+def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Page Loader")
     parser.add_argument("page_url", type=str)
     parser.add_argument(
@@ -24,8 +27,24 @@ def parse_args() -> argparse.Namespace:
         ),
         default=getcwd(),
     )
-    args = parser.parse_args()
-    return args
+    return parser
+
+
+def process_arguments(arguments: Optional[List] = None) -> PageLoaderConfig:
+    parser = create_parser()
+
+    parsed_args = parser.parse_args(arguments)
+
+    return PageLoaderConfig(
+        page_url=parsed_args.page_url,
+        output=Path(parsed_args.output),
+    )
+
+
+def main():
+    config = process_arguments()
+    file_path = download(config.page_url, config.output)
+    print(file_path)
 
 
 if __name__ == "__main__":
