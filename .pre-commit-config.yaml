@@ -18,6 +18,7 @@ repos:
       - id: mixed-line-ending
       - id: check-added-large-files
       - id: end-of-file-fixer
+        exclude_types: ["html"]
       - id: trailing-whitespace
         # Exclude Markdown files because `  ` at the end of a line is a valid
         # syntax to notify a line break.
