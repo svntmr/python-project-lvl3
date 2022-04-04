@@ -4,13 +4,14 @@ from typing import Mapping, Union
 from urllib.parse import urlsplit
 
 
-def generate_file_name_prefix_from_page_url(page_url: str) -> str:
+def generate_file_name_from_page_url(page_url: str) -> str:
     """
-    Generates prefix for the page file names using page url
+    Generates file name for the main page file using page url
 
     :param page_url: page url
     :type page_url: str
-    :return: prefix for the page file names (e.g. foo-bar for https://foo.bar)
+    :return: prefix for the page file names
+    (e.g. ru-hexlet-io-courses.html for https://ru.hexlet.io/courses)
     :rtype: str
     """
     parsed_url = urlsplit(page_url)
@@ -19,22 +20,46 @@ def generate_file_name_prefix_from_page_url(page_url: str) -> str:
     if "." in path:
         path = parsed_url.path.split(".")[0]
     url_without_schema = f"{parsed_url.netloc}{path}"
-    url_with_digits_replaced = re.sub(r"\W", "-", url_without_schema)
+    url_with_digits_replaced = re.sub(r"\W", "-", url_without_schema) + ".html"
     return url_with_digits_replaced
 
 
-def generate_file_name_from_src(file_name_prefix: str, src: str) -> str:
+def generate_file_name_prefix_from_page_url(page_url: str) -> str:
     """
-    Generates file name from asset tag src attribute with file_name_prefix
+    Generates prefix for the page file names using page url
+
+    :param page_url: page url
+    :type page_url: str
+    :return: prefix for the page file names
+    (e.g. ru-hexlet-io for https://ru.hexlet.io/courses)
+    :rtype: str
+    """
+    parsed_url = urlsplit(page_url)
+    domain = parsed_url.netloc
+    domain_with_digits_replaced = re.sub(r"\W", "-", domain)
+    return domain_with_digits_replaced
+
+
+def generate_file_name(file_name_prefix: str, attribute: str, page_url: str) -> str:
+    """
+    Generates file name from asset tag attribute with file_name_prefix
 
     :param file_name_prefix: prefix for page file names
     :type file_name_prefix: str
-    :param src: asset tag src attribute
-    :type src: str
+    :param attribute: asset tag src attribute
+    :type attribute: str
     :return: file name
     :rtype: str
     """
-    path, extension = src.split(".")
+    # actual links
+    if attribute.startswith("http"):
+        parsed_url = urlsplit(attribute)
+        path, extension = parsed_url.path.split(".")
+        return re.sub(r"\W", "-", parsed_url.netloc + path) + f".{extension}"
+    elif "." not in attribute:
+        parsed_url = urlsplit(page_url)
+        return re.sub(r"\W", "-", parsed_url.netloc + attribute) + ".html"
+    path, extension = attribute.split(".")
     path_with_digits_replaced = re.sub(r"\W", "-", path)
     final_path = file_name_prefix + path_with_digits_replaced + "." + extension
     return final_path

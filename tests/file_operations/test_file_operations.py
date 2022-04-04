@@ -3,7 +3,8 @@ from tempfile import TemporaryDirectory
 
 import pytest
 from page_loader.file_operations import (
-    generate_file_name_from_src,
+    generate_file_name,
+    generate_file_name_from_page_url,
     generate_file_name_prefix_from_page_url,
     save_assets,
     save_file,
@@ -16,22 +17,53 @@ from tests.paths import file_operations_tests_resources_path
     [
         pytest.param(
             "https://ru.hexlet.io/courses",
-            "ru-hexlet-io-courses",
+            "ru-hexlet-io-courses.html",
             id="page url without file extension",
         ),
         pytest.param(
             "https://ru.hexlet.io/courses?foo=bar",
-            "ru-hexlet-io-courses",
+            "ru-hexlet-io-courses.html",
             id="page url without file extension with query parameters",
         ),
         pytest.param(
             "https://ru.hexlet.io/courses.html",
-            "ru-hexlet-io-courses",
+            "ru-hexlet-io-courses.html",
             id="page url with file extension",
         ),
         pytest.param(
             "https://ru.hexlet.io/courses.xml?foo=bar",
-            "ru-hexlet-io-courses",
+            "ru-hexlet-io-courses.html",
+            id="page url with file extension and query parameters",
+        ),
+    ],
+)
+def test_generate_file_name_from_page_url(page_url, expected_file_name):
+    assert (
+        generate_file_name_from_page_url(page_url) == expected_file_name
+    ), "wrong file name was generated"
+
+
+@pytest.mark.parametrize(
+    "page_url, expected_file_name",
+    [
+        pytest.param(
+            "https://ru.hexlet.io/courses",
+            "ru-hexlet-io",
+            id="page url without file extension",
+        ),
+        pytest.param(
+            "https://ru.hexlet.io/courses?foo=bar",
+            "ru-hexlet-io",
+            id="page url without file extension with query parameters",
+        ),
+        pytest.param(
+            "https://ru.hexlet.io/courses.html",
+            "ru-hexlet-io",
+            id="page url with file extension",
+        ),
+        pytest.param(
+            "https://ru.hexlet.io/courses.xml?foo=bar",
+            "ru-hexlet-io",
             id="page url with file extension and query parameters",
         ),
     ],
@@ -39,16 +71,41 @@ from tests.paths import file_operations_tests_resources_path
 def test_generate_file_name_prefix_from_page_url(page_url, expected_file_name):
     assert (
         generate_file_name_prefix_from_page_url(page_url) == expected_file_name
-    ), "wrong file name was generated"
+    ), "wrong file name prefix was generated"
 
 
-def test_generate_file_name_from_src():
+def test_generate_file_name():
+    page_url = "https://ru.hexlet.io/courses"
     file_name_prefix = "foo-bar"
     src = "/assets/professions/nodejs.png"
 
-    file_name = generate_file_name_from_src(file_name_prefix, src)
+    file_name = generate_file_name(file_name_prefix, src, page_url)
 
     expected_file_name = "foo-bar-assets-professions-nodejs.png"
+
+    assert file_name == expected_file_name
+
+
+def test_generate_file_name_href_with_full_link():
+    page_url = "https://ru.hexlet.io/courses"
+    file_name_prefix = "foo-bar"
+    src = "https://ru.hexlet.io/packs/js/runtime.js"
+
+    file_name = generate_file_name(file_name_prefix, src, page_url)
+
+    expected_file_name = "ru-hexlet-io-packs-js-runtime.js"
+
+    assert file_name == expected_file_name
+
+
+def test_generate_file_name_link():
+    page_url = "https://ru.hexlet.io/courses"
+    file_name_prefix = "ru-hexlet-io-courses"
+    src = "/courses"
+
+    file_name = generate_file_name(file_name_prefix, src, page_url)
+
+    expected_file_name = "ru-hexlet-io-courses.html"
 
     assert file_name == expected_file_name
 
