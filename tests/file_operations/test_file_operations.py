@@ -144,7 +144,7 @@ def test_save_file_raises_if_folder_does_not_exist():
     with pytest.raises(RuntimeError) as runtime_error:
         save_file(content, file_name, folder)
 
-        assert runtime_error.value == "folder for content saving doesn't exist!"
+    assert str(runtime_error.value) == "folder for content saving doesn't exist!"
 
 
 def test_save_assets():

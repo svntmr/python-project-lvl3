@@ -4,6 +4,7 @@ from os import getcwd
 from pathlib import Path
 from typing import List, Optional
 
+from loguru import logger
 from page_loader.core import download
 
 
@@ -41,6 +42,7 @@ def process_arguments(arguments: Optional[List] = None) -> PageLoaderConfig:
     )
 
 
+@logger.catch
 def main():
     config = process_arguments()
     file_path = download(config.page_url, config.output)
