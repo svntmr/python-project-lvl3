@@ -3,6 +3,10 @@ from pathlib import Path
 from typing import Mapping, Union
 from urllib.parse import urlsplit
 
+from page_loader.logging import get_logger
+
+logger = get_logger("page_loader.comm")
+
 
 def generate_file_name_from_page_url(page_url: str) -> str:
     """
@@ -80,7 +84,9 @@ def save_file(content: Union[str, bytes], file_name: str, folder: Path) -> Path:
     :raises RuntimeError: if output folder doesn't exist
     """
     if not folder.is_dir():
-        raise RuntimeError("folder for content saving doesn't exist!")
+        error_message = "folder for content saving doesn't exist!"
+        logger.error(error_message)
+        raise RuntimeError(error_message)
 
     filepath = folder.joinpath(file_name)
     if isinstance(content, str):
