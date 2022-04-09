@@ -11,3 +11,7 @@
 #### Download and store page content
 
 [![asciicast](https://asciinema.org/a/W9WTf687IBqg0RLO2DFr86g1Y.svg)](https://asciinema.org/a/W9WTf687IBqg0RLO2DFr86g1Y)
+
+#### Case with exception
+
+[![asciicast](https://asciinema.org/a/CoqL47nsiwJ8zoKnPoAGA4DiC.svg)](https://asciinema.org/a/CoqL47nsiwJ8zoKnPoAGA4DiC)
