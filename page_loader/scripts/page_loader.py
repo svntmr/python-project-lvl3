@@ -1,4 +1,6 @@
 import argparse
+import os
+import sys
 from dataclasses import dataclass
 from os import getcwd
 from pathlib import Path
@@ -48,4 +50,8 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    try:
+        main()
+        sys.exit(os.EX_OK)
+    except Exception:
+        sys.exit(os.EX_SOFTWARE)

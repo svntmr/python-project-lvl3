@@ -39,8 +39,8 @@ def test_get_page_content_throws_on_not_ok_status_code(not_ok_response):
     page_url = "https://foo.bar"
 
     get_patch = patch("requests.get", return_value=not_ok_response).start()
-    with pytest.raises(RuntimeError) as runtime_error:
 
+    with pytest.raises(RuntimeError) as runtime_error:
         get_page_content(page_url)
 
     get_patch.assert_called_once_with(page_url)
@@ -48,6 +48,23 @@ def test_get_page_content_throws_on_not_ok_status_code(not_ok_response):
         f"get request to {page_url} returned not OK status code - "
         f"{not_ok_response.status_code}. "
         f"Response message: {not_ok_response.text}"
+    )
+
+    patch.stopall()
+
+
+def test_get_page_content_makes_error_log_on_request_get_exception():
+    page_url = "https://foo.bar"
+
+    get_patch = patch("requests.get", side_effect=Exception()).start()
+    logger_error_patch = patch("logging.Logger.error").start()
+
+    with pytest.raises(Exception):
+        get_page_content(page_url)
+
+    get_patch.assert_called_once_with(page_url)
+    logger_error_patch.assert_called_once_with(
+        f"get request to {page_url} failed, see exception message above"
     )
 
     patch.stopall()

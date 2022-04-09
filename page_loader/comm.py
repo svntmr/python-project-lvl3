@@ -7,7 +7,12 @@ logger = get_logger("page_loader.comm")
 
 
 def get_page_content(page_url: str) -> str:
-    response = requests.get(page_url)
+    try:
+        response = requests.get(page_url)
+    except Exception:
+        error_message = f"get request to {page_url} failed, see exception message above"
+        logger.error(error_message)
+        raise
 
     if response.status_code != HTTPStatus.OK:
         error_message = (
