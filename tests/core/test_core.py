@@ -2,6 +2,7 @@ from pathlib import Path
 from tempfile import TemporaryDirectory
 from unittest.mock import patch
 
+import pytest
 from bs4 import BeautifulSoup
 from page_loader import download
 from page_loader.core import (
@@ -42,6 +43,49 @@ def test_download():
 
         assert file_path == str(expected_file_path)
         assert Path(file_path).read_text() == expected_file_content
+
+        patch.stopall()
+
+
+def test_download_makes_error_log_if_get_page_content_fails():
+    with TemporaryDirectory() as folder:
+        page_url = "https://ru.hexlet.io/courses.html"
+        folder_path = Path(folder)
+
+        # make get_page_content to throw
+        patch("page_loader.core.get_page_content", side_effect=Exception()).start()
+        logger_error_patch = patch("logging.Logger.error").start()
+
+        with pytest.raises(Exception):
+            download(page_url, folder_path)
+
+        logger_error_patch.assert_called_once_with(
+            f"something went wrong while getting the page {page_url} content, "
+            "see exception above"
+        )
+
+        patch.stopall()
+
+
+def test_download_makes_error_log_if_process_page_content():
+    with TemporaryDirectory() as folder:
+        page_url = "https://ru.hexlet.io/courses.html"
+        folder_path = Path(folder)
+
+        patch(
+            "page_loader.core.get_page_content", return_value="<h1>foo, bar</h1>"
+        ).start()
+        # make process_page_content to throw
+        patch("page_loader.core.process_page_content", side_effect=Exception()).start()
+        logger_error_patch = patch("logging.Logger.error").start()
+
+        with pytest.raises(Exception):
+            download(page_url, folder_path)
+
+        logger_error_patch.assert_called_once_with(
+            f"something went wrong while processing page {page_url} content, "
+            "see exception above"
+        )
 
         patch.stopall()
 
@@ -108,6 +152,29 @@ def test_process_page_content_page_with_assets():
         assert (
             Path(filepath).read_text() == expected_updated_content
         ), "it should update page content with new assets location"
+
+    patch.stopall()
+
+
+def test_process_page_content_makes_error_log_on_process_assets_exception():
+    page_url = "https://ru.hexlet.io/courses.html"
+    # page content with assets
+    content = file_operations_tests_resources_path(
+        "page_content_with_assets.html"
+    ).read_text()
+
+    with TemporaryDirectory() as folder:
+        folder_path = Path(folder)
+        logger_error_patch = patch("logging.Logger.error").start()
+        patch("page_loader.core.process_assets", side_effect=Exception()).start()
+
+        with pytest.raises(Exception):
+            process_page_content(page_url, content, folder_path)
+
+        logger_error_patch.assert_called_once_with(
+            f"something went wrong while assets update for page {page_url}, "
+            "see exception above"
+        )
 
     patch.stopall()
 

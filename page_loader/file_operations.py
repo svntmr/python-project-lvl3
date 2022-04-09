@@ -58,8 +58,11 @@ def generate_file_name(file_name_prefix: str, attribute: str, page_url: str) -> 
     # actual links
     if attribute.startswith("http"):
         parsed_url = urlsplit(attribute)
-        path, extension = parsed_url.path.split(".")
-        return re.sub(r"\W", "-", parsed_url.netloc + path) + f".{extension}"
+        if "." in parsed_url.path:
+            path, extension = parsed_url.path.split(".")
+            return re.sub(r"\W", "-", parsed_url.netloc + path) + f".{extension}"
+        else:
+            return re.sub(r"\W", "-", parsed_url.netloc + parsed_url.path) + ".html"
     elif "." not in attribute:
         parsed_url = urlsplit(page_url)
         return re.sub(r"\W", "-", parsed_url.netloc + attribute) + ".html"

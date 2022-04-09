@@ -111,6 +111,30 @@ def test_generate_file_name_link():
     assert file_name == expected_file_name
 
 
+def test_generate_file_name_full_link():
+    page_url = "https://ru.hexlet.io/courses"
+    file_name_prefix = "ru-hexlet-io-courses"
+    src = "https://ru.hexlet.io/courses"
+
+    file_name = generate_file_name(file_name_prefix, src, page_url)
+
+    expected_file_name = "ru-hexlet-io-courses.html"
+
+    assert file_name == expected_file_name
+
+
+def test_generate_file_name_link_with_extension():
+    page_url = "https://ru.hexlet.io/courses"
+    file_name_prefix = "ru-hexlet-io-courses"
+    src = "https://ru.hexlet.io/lessons.rss"
+
+    file_name = generate_file_name(file_name_prefix, src, page_url)
+
+    expected_file_name = "ru-hexlet-io-lessons.rss"
+
+    assert file_name == expected_file_name
+
+
 def test_save_file_str():
     content = "<h1>foo, bar!</h1>"
     file_name = "foo-bar.html"

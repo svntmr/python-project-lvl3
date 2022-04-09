@@ -14,6 +14,9 @@ from page_loader.file_operations import (
     save_assets,
     save_file,
 )
+from page_loader.logging import get_logger
+
+logger = get_logger("page_loader.core")
 
 
 @dataclass(frozen=True)
@@ -47,9 +50,23 @@ def download(page_url: str, output: Path) -> str:
     :rtype: str
     :raises RuntimeError: if output folder doesn't exist
     """
-    page_content = get_page_content(page_url)
+    try:
+        page_content = get_page_content(page_url)
+    except Exception:
+        logger.error(
+            f"something went wrong while getting the page {page_url} content, "
+            "see exception above"
+        )
+        raise
 
-    file_path = process_page_content(page_url, page_content, output)
+    try:
+        file_path = process_page_content(page_url, page_content, output)
+    except Exception:
+        logger.error(
+            f"something went wrong while processing page {page_url} content, "
+            "see exception above"
+        )
+        raise
 
     return file_path
 
@@ -74,12 +91,20 @@ def process_page_content(page_url: str, content: str, folder: Path) -> str:
     # parse and download page assets
     page_assets = get_page_assets(soup, page_url)
     # save assets using base name
-    updated_assets = process_assets(
-        assets=page_assets,
-        file_name_prefix=file_name_prefix,
-        page_url=page_url,
-        folder=folder,
-    )
+    try:
+        updated_assets = process_assets(
+            assets=page_assets,
+            file_name_prefix=file_name_prefix,
+            page_url=page_url,
+            folder=folder,
+        )
+    except Exception:
+        logger.error(
+            f"something went wrong while assets update for page {page_url}, "
+            "see exception above"
+        )
+        raise
+
     # update page code with new assets
     updated_content = update_page_assets(soup, updated_assets)
     # save page new content
@@ -105,8 +130,11 @@ def get_page_assets(soup: BeautifulSoup, page_url: str) -> PageAssets:
     scripts = [
         script
         for script in soup.findAll("script")
-        if script.attrs["src"].startswith("/")
-        or urlsplit(script.attrs["src"]).netloc == domain
+        if "src" in script.attrs
+        and (
+            script.attrs["src"].startswith("/")
+            or urlsplit(script.attrs["src"]).netloc == domain
+        )
     ]
     links = [
         link
@@ -159,6 +187,8 @@ def process_assets(
         for asset in assets_of_type:
             assets_content[reference_attribute][asset] = get_page_content(
                 page_url + asset.attrs[reference_attribute]
+                if asset.attrs[reference_attribute].startswith("/")
+                else asset.attrs[reference_attribute]
             )
 
     new_assets_path_content = {}
