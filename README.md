@@ -10,7 +10,7 @@
 
 #### Download and store page content
 
-[![asciicast](https://asciinema.org/a/W9WTf687IBqg0RLO2DFr86g1Y.svg)](https://asciinema.org/a/W9WTf687IBqg0RLO2DFr86g1Y)
+[![asciicast](https://asciinema.org/a/sdfqiKXGZrJTtdAN06H4Pt7YX.svg)](https://asciinema.org/a/sdfqiKXGZrJTtdAN06H4Pt7YX)
 
 #### Case with exception
 
