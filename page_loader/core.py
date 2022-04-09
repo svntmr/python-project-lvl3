@@ -33,12 +33,6 @@ class PageAssetsWithUpdatedAssets:
     src: Dict[Tag, Tag]
     href: Dict[Tag, Tag]
 
-    def to_dict(self) -> Dict[str, Dict[Tag, Tag]]:
-        return {
-            "src": self.src,
-            "href": self.href,
-        }
-
 
 def download(page_url: str, output: Path) -> str:
     """
