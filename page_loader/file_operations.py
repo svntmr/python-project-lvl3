@@ -89,12 +89,20 @@ def save_file(content: Union[str, bytes], file_name: str, folder: Path) -> Path:
         raise RuntimeError(error_message)
 
     filepath = folder.joinpath(file_name)
+
     if isinstance(content, str):
         mode = "w"
     else:
         mode = "wb"
-    with filepath.open(mode) as file:
-        file.write(content)
+
+    try:
+        with filepath.open(mode) as file:
+            file.write(content)
+    except Exception:
+        logger.error(
+            "something went wrong on file writing, see exception message above"
+        )
+        raise
 
     return filepath
 

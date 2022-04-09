@@ -1,5 +1,6 @@
 from pathlib import Path
 from tempfile import TemporaryDirectory
+from unittest.mock import mock_open, patch
 
 import pytest
 from page_loader.file_operations import (
@@ -145,6 +146,26 @@ def test_save_file_raises_if_folder_does_not_exist():
         save_file(content, file_name, folder)
 
     assert str(runtime_error.value) == "folder for content saving doesn't exist!"
+
+
+def test_save_file_makes_error_log_on_write_fail():
+    content = "<h1>foo, bar!</h1>"
+    file_name = "foo-bar.html"
+    with TemporaryDirectory() as folder:
+        folder_path = Path(folder)
+
+        logger_error_patch = patch("logging.Logger.error").start()
+        # make open to throw Exception
+        with patch("pathlib.Path.open", mock_open()) as mock_file:
+            mock_file.side_effect = Exception()
+            with pytest.raises(Exception):
+                save_file(content, file_name, folder_path)
+
+        logger_error_patch.assert_called_once_with(
+            "something went wrong on file writing, see exception message above"
+        )
+
+    patch.stopall()
 
 
 def test_save_assets():
