@@ -68,6 +68,8 @@ def generate_file_name(file_name_prefix: str, attribute: str, page_url: str) -> 
         return re.sub(r"\W", "-", parsed_url.netloc + attribute) + ".html"
     path, extension = attribute.split(".")
     path_with_digits_replaced = re.sub(r"\W", "-", path)
+    if not path.startswith("/"):
+        file_name_prefix = file_name_prefix + "-"
     final_path = file_name_prefix + path_with_digits_replaced + "." + extension
     return final_path
 
@@ -86,6 +88,7 @@ def save_file(content: Union[str, bytes], file_name: str, folder: Path) -> Path:
     :rtype: Path
     :raises RuntimeError: if output folder doesn't exist
     """
+    folder = Path(folder)
     if not folder.is_dir():
         error_message = "folder for content saving doesn't exist!"
         logger.error(error_message)
@@ -121,3 +124,27 @@ def save_assets(assets_path_with_content: Mapping[Path, Union[bytes, str]]) -> N
     for asset_path, content in assets_path_with_content.items():
         asset_folder, asset_file_name = asset_path.parent.resolve(), asset_path.name
         save_file(content, asset_file_name, asset_folder)
+
+
+def create_assets_folder(main_folder: Union[str, Path], assets_folder: str) -> Path:
+    """
+    Creates assets folder
+
+    :param main_folder: core folder for the new folder
+    :type main_folder: Union[str, Path]
+    :param assets_folder: folder to create
+    :type assets_folder: str
+    :return: created folder path
+    :rtype: Path
+    :raises Exception: if something went wrong
+    """
+    assets_folder_path = Path(main_folder).joinpath(assets_folder)
+    try:
+        assets_folder_path.resolve().mkdir()
+    except Exception:
+        logger.error(
+            f"something went wrong while creating folder {str(assets_folder_path)}, "
+            "see exception above"
+        )
+        raise
+    return assets_folder_path

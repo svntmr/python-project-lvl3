@@ -44,14 +44,14 @@ def process_arguments(arguments: Optional[List] = None) -> PageLoaderConfig:
 
 
 def main():
-    config = process_arguments()
-    file_path = download(config.page_url, config.output)
-    print(file_path)
-
-
-if __name__ == "__main__":
     try:
-        main()
+        config = process_arguments()
+        file_path = download(config.page_url, config.output)
+        print(file_path)
         sys.exit(os.EX_OK)
     except Exception:
         sys.exit(os.EX_SOFTWARE)
+
+
+if __name__ == "__main__":
+    main()

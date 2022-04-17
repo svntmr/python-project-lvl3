@@ -8,25 +8,21 @@ from progress.bar import IncrementalBar
 logger = get_logger("page_loader.comm")
 
 
-def get_page_content(page_url: str) -> str:
+def get_page_content(page_url: str) -> bytes:
     try:
         with requests.get(
             page_url,
             stream=True,
         ) as response:
-            total_size = (
-                int(response.headers.get("content-length", 0))
-                if int(response.headers.get("content-length", 0))
-                else len(response.content)
-            )
-            chunk_size = 2048
+            total_size = len(response.content)
+            chunk_size = 1024
             steps = round(total_size / chunk_size)
 
             with IncrementalBar(
                 f"Downloading {page_url} content", max=steps, check_tty=False
             ) as bar:
                 for __ in response.iter_content(chunk_size=chunk_size):
-                    time.sleep(0.01)
+                    time.sleep(0.001)
                     bar.next()
     except Exception:
         error_message = f"get request to {page_url} failed, see exception message above"
@@ -41,4 +37,4 @@ def get_page_content(page_url: str) -> str:
         logger.error(error_message)
         raise RuntimeError(error_message)
 
-    return response.text
+    return response.content

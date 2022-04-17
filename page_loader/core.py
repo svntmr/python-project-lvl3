@@ -1,4 +1,4 @@
-from copy import copy
+from copy import copy, deepcopy
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Union
@@ -8,6 +8,7 @@ from bs4 import BeautifulSoup
 from bs4.element import Tag
 from page_loader.comm import get_page_content
 from page_loader.file_operations import (
+    create_assets_folder,
     generate_file_name,
     generate_file_name_from_page_url,
     generate_file_name_prefix_from_page_url,
@@ -71,7 +72,7 @@ def download(page_url: str, output: Path) -> str:
     return file_path
 
 
-def process_page_content(page_url: str, content: str, folder: Path) -> str:
+def process_page_content(page_url: str, content: bytes, folder: Path) -> str:
     """
     Processes page content and downloads assets into provided folder
     then returns path to saved page
@@ -79,7 +80,7 @@ def process_page_content(page_url: str, content: str, folder: Path) -> str:
     :param page_url: page url
     :type page_url: str
     :param content: page content
-    :type content: str
+    :type content: bytes
     :param folder: folder to save page contents
     :type folder: Path
     :return: path to saved page
@@ -175,8 +176,7 @@ def process_assets(
         )
     # create folder
     assets_folder = generate_file_name_from_page_url(page_url).split(".")[0] + "_files"
-    assets_folder_path = Path(folder).joinpath(assets_folder)
-    assets_folder_path.mkdir(parents=True, exist_ok=True)
+    assets_folder_path = create_assets_folder(folder, assets_folder)
 
     # download assets
     assets_content: Dict[str, Dict[Tag, Union[bytes, str]]] = {
@@ -185,11 +185,8 @@ def process_assets(
     }
     for reference_attribute, assets_of_type in assets.to_dict().items():
         for asset in assets_of_type:
-            assets_content[reference_attribute][asset] = get_page_content(
-                page_url + asset.attrs[reference_attribute]
-                if asset.attrs[reference_attribute].startswith("/")
-                else asset.attrs[reference_attribute]
-            )
+            url = get_asset_url(asset, page_url, reference_attribute)
+            assets_content[reference_attribute][asset] = get_page_content(url)
 
     new_assets_path_content = {}
     updated_assets: Dict[str, Dict[Tag, Tag]] = {
@@ -225,6 +222,34 @@ def process_assets(
     return assets_with_updated_assets
 
 
+def get_asset_url(asset: Tag, page_url: str, reference_attribute: str) -> str:
+    """
+    Extracts asset url
+    Covers http-like, absolute (/assets/...), relative (assets/...) references
+
+    :param asset: asset to extract url from
+    :type asset: Tag
+    :param page_url: page url
+    :type page_url: str
+    :param reference_attribute: url attribute name (scr, href)
+    :type reference_attribute: str
+    :return:
+    :rtype:
+    """
+    # absolute path
+    if asset.attrs[reference_attribute].startswith("/"):
+        parsed_page_url = urlsplit(page_url)
+        page_url_domain = f"{parsed_page_url.scheme}://{parsed_page_url.netloc}"
+        url = page_url_domain + asset.attrs[reference_attribute]
+    # looks like link
+    elif asset.attrs[reference_attribute].startswith("http"):
+        url = asset.attrs[reference_attribute]
+    # local path
+    else:
+        url = page_url + asset.attrs[reference_attribute]
+    return url
+
+
 def update_page_assets(soup: BeautifulSoup, assets: PageAssetsWithUpdatedAssets) -> str:
     """
     Replaces old assets with new assets with updated assets
@@ -236,7 +261,7 @@ def update_page_assets(soup: BeautifulSoup, assets: PageAssetsWithUpdatedAssets)
     :return: updated page content
     :rtype: str
     """
-    soup_copy = copy(soup)
+    soup_copy = deepcopy(soup)
     for original_src_asset, updated_src_asset in assets.src.items():
         original_asset_in_soup = soup_copy.find(
             original_src_asset.name, src=original_src_asset.attrs["src"]

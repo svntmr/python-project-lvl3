@@ -1,7 +1,9 @@
+import os
 from os import getcwd
 from pathlib import Path
 from unittest.mock import patch
 
+import pytest
 from page_loader.scripts.page_loader import (
     PageLoaderConfig,
     main,
@@ -50,7 +52,23 @@ def test_main():
     patch("page_loader.scripts.page_loader.download", return_value=file_path).start()
     print_patch = patch("builtins.print").start()
 
-    main()
+    with pytest.raises(SystemExit) as exit_err:
+        main()
 
+    # it should exit with EX_OK code as execution was successful
+    assert exit_err.value.code == os.EX_OK
     # main should call print with file path returned from download
     print_patch.assert_called_once_with(file_path)
+
+
+def test_main_with_exception():
+    # make process_arguments raise
+    patch(
+        "page_loader.scripts.page_loader.process_arguments", side_effect=Exception()
+    ).start()
+
+    with pytest.raises(SystemExit) as exit_err:
+        main()
+
+    # it should exit with EX_SOFTWARE code as execution wasn't successful
+    assert exit_err.value.code == os.EX_SOFTWARE

@@ -30,7 +30,7 @@ def test_get_page_content_makes_get_request_and_returns_response_content(ok_resp
     content = get_page_content(page_url)
 
     get_patch.assert_called_once_with(page_url, stream=True)
-    assert content == ok_response.text, "it should return response text"
+    assert content == ok_response.content, "it should return response text"
 
     patch.stopall()
 

@@ -4,13 +4,14 @@ from unittest.mock import mock_open, patch
 
 import pytest
 from page_loader.file_operations import (
+    create_assets_folder,
     generate_file_name,
     generate_file_name_from_page_url,
     generate_file_name_prefix_from_page_url,
     save_assets,
     save_file,
 )
-from tests.paths import file_operations_tests_resources_path
+from tests.paths import tests_resources_path
 
 
 @pytest.mark.parametrize(
@@ -193,9 +194,7 @@ def test_save_file_makes_error_log_on_write_fail():
 
 
 def test_save_assets():
-    asset_content = file_operations_tests_resources_path(
-        "assets/professions/nodejs.png"
-    ).read_bytes()
+    asset_content = tests_resources_path("assets/professions/nodejs.png").read_bytes()
 
     with TemporaryDirectory() as folder:
         assets_folder = Path(folder).resolve().joinpath("foo-bar_files")
@@ -208,3 +207,28 @@ def test_save_assets():
 
         assert asset_path.exists()
         assert asset_path.read_bytes() == asset_content
+
+
+def test_create_assets_folder():
+    with TemporaryDirectory() as folder:
+        assets_folder_path = create_assets_folder(folder, "foo")
+
+        assert assets_folder_path.exists()
+        assert assets_folder_path.is_dir()
+
+
+def test_create_assets_folder_makes_error_log_on_exception():
+    folder = "/foo/bar"
+    logger_error_patch = patch("logging.Logger.error").start()
+    patch("pathlib.Path.mkdir", side_effect=Exception()).start()
+
+    with pytest.raises(Exception):
+        create_assets_folder(folder, "foo")
+
+    logger_error_patch.assert_called_once_with(
+        "something went wrong while creating folder "
+        f"{folder}/foo, "
+        "see exception above"
+    )
+
+    patch.stopall()
